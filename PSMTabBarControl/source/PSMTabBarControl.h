@@ -60,7 +60,7 @@ enum {
     PSMTab_BottomTab        = 1
 };
 
-@interface PSMTabBarControl : NSControl <PTYTabViewDelegateProtocol, NSTableViewDelegate> {
+@interface PSMTabBarControl : NSControl <PTYTabViewDelegateProtocol, NSTabViewDelegate> {
 
     // control basics
     NSMutableArray              *_cells;                    // the cells that draw the tabs

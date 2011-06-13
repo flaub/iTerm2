@@ -34,6 +34,7 @@
 #import "WindowControllerInterface.h"
 #import "PasteboardHistory.h"
 #import "Autocomplete.h"
+#import "FileSystemView.h"
 
 @class PTYSession, iTermController, PTToolbarController, PSMTabBarControl;
 
@@ -110,6 +111,11 @@
     // A text field into which you may type a command. When you press enter in it
     // then the text is sent to the terminal.
     IBOutlet id commandField;
+
+    ////////////////////////////////////////////////////////////////////////////
+    // FileSystem
+	NSDrawer* _drawer;
+	FileSystemView* fileSystemView;
 
     ////////////////////////////////////////////////////////////////////////////
     // Miscellaneous
@@ -342,16 +348,16 @@
 // Can progress indicators be shown? They're turned off during animation of the tabbar.
 - (BOOL)disableProgressIndicators;
 
-////////////////////////////////////////////////////////////////////////////////
-// NSTextField Delegate Methods
+#pragma mark -
+#pragma mark NSTextField Delegate Methods
 
 // Called when return or tab is pressed in the bottombar text field or the command
 // field.
 - (void)controlTextDidEndEditing:(NSNotification *)aNotification;
 
+#pragma mark -
+#pragma mark NSWindowController Delegate Methods
 
-////////////////////////////////////////////////////////////////////////////////
-// NSWindowController Delegate Methods
 // Called when a window is unhidden.
 - (void)windowDidDeminiaturize:(NSNotification *)aNotification;
 
@@ -395,16 +401,15 @@
 - (NSRect)windowWillUseStandardFrame:(NSWindow *)sender
                         defaultFrame:(NSRect)defaultFrame;
 
-
-////////////////////////////////////////////////////////////////////////////////
-// PTYWindow Delegate Methods
+#pragma mark -
+#pragma mark PTYWindow Delegate Methods
 
 // Set the window's initial frame. Unofficial protocol.
 - (void)windowWillShowInitial;
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Tab View Delegate Methods
+#pragma mark -
+#pragma mark Tab View Delegate Methods
 
 // Called before a tab view item is selected.
 - (void)tabView:(NSTabView *)tabView
@@ -516,7 +521,8 @@
 
 -(void)replaySession:(PTYSession *)session;
 
-// WindowControllerInterface protocol
+#pragma mark -
+#pragma mark WindowControllerInterface protocol
 - (void)windowSetFrameTopLeftPoint:(NSPoint)point;
 - (void)windowPerformMiniaturize:(id)sender;
 - (void)windowDeminiaturize:(id)sender;
@@ -538,9 +544,11 @@
 // Maximize or unmaximize the active pane
 - (void)toggleMaximizeActivePane;
 
-// Key actions
 - (void)newWindowWithBookmarkGuid:(NSString*)guid;
 - (void)newTabWithBookmarkGuid:(NSString*)guid;
+
+#pragma mark -
+#pragma mark Split panes
 - (void)splitVertically:(BOOL)isVertical withBookmarkGuid:(NSString*)guid;
 - (void)splitVertically:(BOOL)isVertical withBookmark:(Bookmark*)theBookmark targetSession:(PTYSession*)targetSession;
 
@@ -549,7 +557,8 @@
 - (IBAction)splitHorizontally:(id)sender;
 - (void)splitVertically:(BOOL)isVertical withBookmark:(Bookmark*)theBookmark targetSession:(PTYSession*)targetSession;
 
-// Change active pane.
+#pragma mark -
+#pragma mark Change active pane
 - (IBAction)selectPaneLeft:(id)sender;
 - (IBAction)selectPaneRight:(id)sender;
 - (IBAction)selectPaneUp:(id)sender;

@@ -384,6 +384,20 @@ NSString *sessionsKey = @"sessions";
     if (windowType == WINDOW_TYPE_FORCE_FULL_SCREEN) {
         windowType_ = WINDOW_TYPE_FULL_SCREEN;
     }
+	
+	fileSystemView = [[FileSystemView alloc] init];
+	[fileSystemView setRootPath:@"/"];
+
+    aRect = [[[self window] contentView] bounds];
+	NSSize drawerSize;
+	drawerSize.width = 100;
+	drawerSize.height = aRect.size.height;
+	
+	_drawer = [[NSDrawer alloc] initWithContentSize:drawerSize preferredEdge:NSMinXEdge];
+	[_drawer setContentView:fileSystemView];
+	[_drawer setParentWindow:[self window]];
+	[_drawer open];
+	
     return self;
 }
 
@@ -1650,6 +1664,9 @@ NSString *sessionsKey = @"sessions";
     }
 }
 
+#pragma mark -
+#pragma mark TabView delegates
+
 - (void)tabView:(NSTabView *)tabView didSelectTabViewItem:(NSTabViewItem *)tabViewItem
 {
     for (PTYSession* aSession in [[tabViewItem identifier] sessions]) {
@@ -2023,6 +2040,8 @@ NSString *sessionsKey = @"sessions";
     [tabView selectTabViewItem:tabViewItem];
     [self editCurrentSession:self];
 }
+
+#pragma mark -
 
 - (void)tabViewDoubleClickTabBar:(NSTabView *)tabView
 {

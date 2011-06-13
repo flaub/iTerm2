@@ -231,6 +231,10 @@
 		874206530564169600CFC3F1 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0464AB2F006CD2EC7F000001 /* AppKit.framework */; };
 		9325FF500FB54E00004EC67C /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9325FF4E0FB54E00004EC67C /* MainMenu.xib */; };
 		93A6FEFA10685E9900A5F905 /* dsa_pub.pem in Resources */ = {isa = PBXBuildFile; fileRef = 93A6FEF910685E9900A5F905 /* dsa_pub.pem */; };
+		B6EDDAC213A5C699003210BD /* FileSystemView.h in Headers */ = {isa = PBXBuildFile; fileRef = B6EDDAC013A5C697003210BD /* FileSystemView.h */; };
+		B6EDDAC313A5C699003210BD /* FileSystemView.m in Sources */ = {isa = PBXBuildFile; fileRef = B6EDDAC113A5C698003210BD /* FileSystemView.m */; };
+		B6EDDAC613A5C7AE003210BD /* FileSystemModel.h in Headers */ = {isa = PBXBuildFile; fileRef = B6EDDAC413A5C7AD003210BD /* FileSystemModel.h */; };
+		B6EDDAC713A5C7AE003210BD /* FileSystemModel.m in Sources */ = {isa = PBXBuildFile; fileRef = B6EDDAC513A5C7AE003210BD /* FileSystemModel.m */; };
 		DDF0FD65062916F70080EF74 /* iTermApplication.h in Headers */ = {isa = PBXBuildFile; fileRef = DDF0FD63062916F70080EF74 /* iTermApplication.h */; };
 		DDF0FD66062916F70080EF74 /* iTermApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = DDF0FD64062916F70080EF74 /* iTermApplication.m */; };
 		F638C2620AD483BF00BEE23D /* iTerm.strings in Resources */ = {isa = PBXBuildFile; fileRef = FB151F2903648AC401F955DB /* iTerm.strings */; };
@@ -421,6 +425,10 @@
 		9325FF470FB54DF1004EC67C /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/BookmarksWindow.xib; sourceTree = "<group>"; };
 		9325FF4F0FB54E00004EC67C /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		93A6FEF910685E9900A5F905 /* dsa_pub.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dsa_pub.pem; sourceTree = "<group>"; };
+		B6EDDAC013A5C697003210BD /* FileSystemView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileSystemView.h; sourceTree = "<group>"; };
+		B6EDDAC113A5C698003210BD /* FileSystemView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileSystemView.m; sourceTree = "<group>"; };
+		B6EDDAC413A5C7AD003210BD /* FileSystemModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileSystemModel.h; sourceTree = "<group>"; };
+		B6EDDAC513A5C7AE003210BD /* FileSystemModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileSystemModel.m; sourceTree = "<group>"; };
 		DD02572409CB9398008F320C /* PSMAquaTabStyle.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PSMAquaTabStyle.h; sourceTree = "<group>"; };
 		DD02572509CB9398008F320C /* PSMAquaTabStyle.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = PSMAquaTabStyle.m; sourceTree = "<group>"; };
 		DD02572609CB9398008F320C /* PSMMetalTabStyle.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = PSMMetalTabStyle.h; sourceTree = "<group>"; };
@@ -609,6 +617,7 @@
 		0464AB0E006CD2EC7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				B6EDDAC513A5C7AE003210BD /* FileSystemModel.m */,
 				1DE214E0128212EE004E3ADF /* Autocomplete.m */,
 				1D6C50A61226EEFB00E0AA3E /* BookmarkListView.m */,
 				1DCF3E8D122419D200AD56F1 /* BookmarkModel.m */,
@@ -655,6 +664,7 @@
 				1D44218B1290B34500891504 /* TextViewWrapper.m */,
 				E8CF7562026DDA6303A80106 /* VT100Screen.m */,
 				E8CF7563026DDA6303A80106 /* VT100Terminal.m */,
+				B6EDDAC113A5C698003210BD /* FileSystemView.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -662,6 +672,8 @@
 		0464AB15006CD2EC7F000001 /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				B6EDDAC413A5C7AD003210BD /* FileSystemModel.h */,
+				B6EDDAC013A5C697003210BD /* FileSystemView.h */,
 				1DE214DF128212EE004E3ADF /* Autocomplete.h */,
 				1DCF3F491225F6F200AD56F1 /* BookmarkModel.h */,
 				1D6C50A51226EEFB00E0AA3E /* BookmarkListView.h */,
@@ -1097,6 +1109,8 @@
 				1D624BEE1386E34F00111319 /* GTMObjectSingleton.h in Headers */,
 				1D624BF41386E39D00111319 /* GTMDebugSelectorValidation.h in Headers */,
 				1D624BF61386E3B400111319 /* GTMTypeCasting.h in Headers */,
+				B6EDDAC213A5C699003210BD /* FileSystemView.h in Headers */,
+				B6EDDAC613A5C7AE003210BD /* FileSystemModel.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1377,6 +1391,8 @@
 				1D06A050134CDBED00C414EF /* Trouter.m in Sources */,
 				1D988598135D23BD0072023F /* ProcessCache.m in Sources */,
 				1D624BC81386E09E00111319 /* GTMCarbonEvent.m in Sources */,
+				B6EDDAC313A5C699003210BD /* FileSystemView.m in Sources */,
+				B6EDDAC713A5C7AE003210BD /* FileSystemModel.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
