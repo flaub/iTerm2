@@ -173,7 +173,7 @@
 
     // Check the boundary
     if (theIndex>[super numberOfTabViewItems]) {
-        NSLog(@"Warning: index(%d) > numberOfTabViewItems(%d)", theIndex, [super numberOfTabViewItems]);
+        NSLog(@"Warning: index(%d) > numberOfTabViewItems(%d)", (int)theIndex, (int)[super numberOfTabViewItems]);
         theIndex = [super numberOfTabViewItems];
     }
 

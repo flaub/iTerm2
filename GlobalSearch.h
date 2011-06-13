@@ -48,7 +48,7 @@
 
 @end
 
-@interface GlobalSearch : NSViewController
+@interface GlobalSearch : NSViewController<NSTextFieldDelegate, NSTableViewDelegate, NSTableViewDataSource>
 {
     IBOutlet iTermSearchField* searchField_;
     IBOutlet NSTableView* tableView_;

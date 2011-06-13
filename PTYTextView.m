@@ -1566,7 +1566,7 @@ static BOOL RectsEqual(NSRect* a, NSRect* b) {
                         dl[i] = theLine[i].code;
                     }
                 }
-                DebugLog([NSString stringWithCString:dl]);
+                DebugLog([NSString stringWithUTF8String:dl]);
             }
 
 #ifdef DEBUG_DRAWING
@@ -3220,8 +3220,7 @@ static double EuclideanDistance(NSPoint p1, NSPoint p2) {
             for (i = 0; i < (int)[propertyList count]; i++) {
                 // Ignore text clippings
                 NSString *filename = (NSString*)[propertyList objectAtIndex:i];  // this contains the POSIX path to a file
-                NSDictionary *filenamesAttributes = [[NSFileManager defaultManager] fileAttributesAtPath:filename
-                                                                                            traverseLink:YES];
+                NSDictionary *filenamesAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filename error:nil];
                 if (([filenamesAttributes fileHFSTypeCode] == 'clpt' &&
                      [filenamesAttributes fileHFSCreatorCode] == 'MACS') ||
                     [[filename pathExtension] isEqualToString:@"textClipping"] == YES) {

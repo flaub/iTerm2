@@ -15,7 +15,7 @@
 #import <AddressBook/AddressBook.h>
 
 
-NSString*	UKCrashReporterFindTenFiveCrashReportPath( NSString* appName, NSString* crashLogsFolder );
+NSString* UKCrashReporterFindTenFiveCrashReportPath( NSString* appName, NSString* crashLogsFolder );
 
 // -----------------------------------------------------------------------------
 //	UKCrashReporterCheckForCrash:
@@ -34,7 +34,7 @@ NSString*	UKCrashReporterFindTenFiveCrashReportPath( NSString* appName, NSString
 //		application.
 // -----------------------------------------------------------------------------
 
-void	UKCrashReporterCheckForCrash()
+void UKCrashReporterCheckForCrash()
 {
 	NSAutoreleasePool*	pool = [[NSAutoreleasePool alloc] init];
 	
@@ -173,14 +173,16 @@ NSString*	gCrashLogString = nil;
 -(void)	awakeFromNib
 {
 	// Insert the app name into the explanation message:
-	NSString*			appName = [[NSFileManager defaultManager] displayNameAtPath: [[NSBundle mainBundle] bundlePath]];
-	NSMutableString*	expl = nil;
+	NSString* appName = [[NSFileManager defaultManager] displayNameAtPath: [[NSBundle mainBundle] bundlePath]];
+	NSMutableString* expl = nil;
 	if( gCrashLogString )
 		expl = [[[explanationField stringValue] mutableCopy] autorelease];
 	else
 		expl = [[NSLocalizedStringFromTable(@"FEEDBACK_EXPLANATION_TEXT",@"UKCrashReporter",@"") mutableCopy] autorelease];
-	[expl replaceOccurrencesOfString: @"%%APPNAME" withString: appName
-				options: 0 range: NSMakeRange(0, [expl length])];
+	[expl replaceOccurrencesOfString: @"%%APPNAME" 
+						  withString: appName
+							 options: 0 
+							   range: NSMakeRange(0, [expl length])];
 	[explanationField setStringValue: expl];
 	
 	// Insert user name and e-mail address into the information field:
@@ -189,16 +191,16 @@ NSString*	gCrashLogString = nil;
 		userMessage = [[[informationField string] mutableCopy] autorelease];
 	else
 		userMessage = [[NSLocalizedStringFromTable(@"FEEDBACK_MESSAGE_TEXT",@"UKCrashReporter",@"") mutableCopy] autorelease];
-	[userMessage replaceOccurrencesOfString: @"%%LONGUSERNAME" withString: NSFullUserName()
-				options: 0 range: NSMakeRange(0, [userMessage length])];
-	ABMultiValue*	emailAddresses = [[[ABAddressBook sharedAddressBook] me] valueForProperty: kABEmailProperty];
-	NSString*		emailAddr = NSLocalizedStringFromTable(@"MISSING_EMAIL_ADDRESS",@"UKCrashReporter",@"");
-	if( emailAddresses )
-	{
-		NSString*		defaultKey = [emailAddresses primaryIdentifier];
-		if( defaultKey )
-		{
-			unsigned int	defaultIndex = [emailAddresses indexForIdentifier: defaultKey];
+	[userMessage replaceOccurrencesOfString: @"%%LONGUSERNAME" 
+								 withString: NSFullUserName()
+									options: 0 
+									  range: NSMakeRange(0, [userMessage length])];
+	ABMultiValue* emailAddresses = [[[ABAddressBook sharedAddressBook] me] valueForProperty: kABEmailProperty];
+	NSString* emailAddr = NSLocalizedStringFromTable(@"MISSING_EMAIL_ADDRESS",@"UKCrashReporter",@"");
+	if( emailAddresses ) {
+		NSString* defaultKey = [emailAddresses primaryIdentifier];
+		if( defaultKey ) {
+			int defaultIndex = [emailAddresses indexForIdentifier: defaultKey];
 			if( defaultIndex >= 0 )
 				emailAddr = [emailAddresses valueAtIndex: defaultIndex];
 		}

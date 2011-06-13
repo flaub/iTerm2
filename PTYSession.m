@@ -28,7 +28,7 @@
 #import <iTerm/PTYSession.h>
 #import <iTerm/PTYTask.h>
 #import <iTerm/PTYTextView.h>
-#import <iTerm/PTYScrollView.h>;
+#import <iTerm/PTYScrollView.h>
 #import <iTerm/VT100Screen.h>
 #import <iTerm/VT100Terminal.h>
 #import <iTerm/PreferencePanel.h>
@@ -2844,7 +2844,7 @@ static long long timeInTenthsOfSeconds(struct timeval t)
     }
 
     if (contentsOfFile != nil) {
-        aString = [NSString stringWithContentsOfFile:contentsOfFile];
+        aString = [NSString stringWithContentsOfFile:contentsOfFile encoding:[TERMINAL encoding] error:nil];
         data = [aString dataUsingEncoding:[TERMINAL encoding]];
     }
 

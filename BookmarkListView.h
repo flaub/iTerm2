@@ -84,7 +84,8 @@
 - (NSMenu*)bookmarkTable:(id)bookmarkTable menuForEvent:(NSEvent*)theEvent;
 @end
 
-@interface BookmarkListView : NSView {
+@interface BookmarkListView : NSView<NSTextFieldDelegate, NSTableViewDelegate, NSTableViewDataSource> 
+{
     int rowHeight_;
     NSScrollView* scrollView_;
     iTermSearchField* searchField_;

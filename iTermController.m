@@ -108,10 +108,16 @@ static BOOL initDone = NO;
 
     // create the "~/Library/Application Support" directory if it does not exist
     if([fileManager fileExistsAtPath: [APPLICATION_SUPPORT_DIRECTORY stringByExpandingTildeInPath]] == NO)
-        [fileManager createDirectoryAtPath: [APPLICATION_SUPPORT_DIRECTORY stringByExpandingTildeInPath] attributes: nil];
+        [fileManager createDirectoryAtPath: [APPLICATION_SUPPORT_DIRECTORY stringByExpandingTildeInPath] 
+			   withIntermediateDirectories:YES 
+								attributes:nil 
+									 error:nil];
 
     if([fileManager fileExistsAtPath: [SUPPORT_DIRECTORY stringByExpandingTildeInPath]] == NO)
-        [fileManager createDirectoryAtPath: [SUPPORT_DIRECTORY stringByExpandingTildeInPath] attributes: nil];
+        [fileManager createDirectoryAtPath:[SUPPORT_DIRECTORY stringByExpandingTildeInPath] 
+			   withIntermediateDirectories:YES 
+								attributes:nil
+									 error:nil];
 
     terminalWindows = [[NSMutableArray alloc] init];
     keyWindowIndexMemo_ = -1;

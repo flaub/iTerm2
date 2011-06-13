@@ -29,7 +29,7 @@
 
 @class iTermExposeView;
 @class PTYTab;
-@interface iTermExpose : NSObject {
+@interface iTermExpose : NSObject<NSWindowDelegate> {
     NSWindow* window_;
     iTermExposeView* view_;
 }
