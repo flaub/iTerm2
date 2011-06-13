@@ -23,7 +23,7 @@
  */
 
 #import "FileSystemView.h"
-
+#include <Carbon/Carbon.h>
 
 @implementation FileSystemView
 
@@ -31,7 +31,16 @@
 {
     self = [super init];
     if (self) {
-        // Initialization code here.
+		NSString* dir = [[NSUserDefaults standardUserDefaults] stringForKey: @"OpenDir"];
+		if (!dir) {
+			NSArray* paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+			if ([paths count])
+				dir = [paths objectAtIndex: 0];
+			else
+				dir = [[NSFileManager defaultManager] currentDirectoryPath];
+		}
+//		[self setDoubleAction: @selector(outlineViewDoubleClicked:)];
+		[self setRootPath: dir];
     }
     
     return self;
@@ -50,6 +59,19 @@
 	[self setDataSource: _fs];
 	[self reloadData];
 	[self expandItem: [_fs root]];
+}
+
+- (void) keyDown: (NSEvent*) theEvent
+{
+	if ([theEvent keyCode] == kVK_Return)
+		[self sendAction: [self doubleAction] to: nil];
+	else
+		[super keyDown: theEvent];
+}
+
+- (void) onRefreshItem: (FileSystemNode*) item
+{
+	[self reloadItem: nil reloadChildren: YES];
 }
 
 @end

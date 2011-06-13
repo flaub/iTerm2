@@ -386,17 +386,59 @@ NSString *sessionsKey = @"sessions";
     }
 	
 	fileSystemView = [[FileSystemView alloc] init];
-	[fileSystemView setRootPath:@"/"];
+	[fileSystemView setAutoresizesOutlineColumn:YES];
 
-    aRect = [[[self window] contentView] bounds];
-	NSSize drawerSize;
-	drawerSize.width = 100;
-	drawerSize.height = aRect.size.height;
-	
-	_drawer = [[NSDrawer alloc] initWithContentSize:drawerSize preferredEdge:NSMinXEdge];
-	[_drawer setContentView:fileSystemView];
+	NSTableColumn* tableColumn = [[NSTableColumn alloc] initWithIdentifier: @"Name"];
+	[[tableColumn headerCell] setStringValue: @"Foo"];
+	[tableColumn setResizingMask:NSTableColumnAutoresizingMask];
+	[tableColumn setWidth:300];
+	[fileSystemView addTableColumn: tableColumn];
+	[tableColumn release];
+	[fileSystemView setOutlineTableColumn: tableColumn];
+
+	_drawer = [[NSDrawer alloc] initWithContentSize:NSMakeSize(300, 300) preferredEdge:NSMinXEdge];
 	[_drawer setParentWindow:[self window]];
-	[_drawer open];
+	[_drawer setContentView:fileSystemView];
+	[fileSystemView release];
+
+	[_drawer openOnEdge:NSMinXEdge];
+	
+	/*
+	 myDrawer = [[NSDrawer alloc] initWithContentSize: NSMakeSize(20, 100) preferredEdge: NSMinXEdge];
+	 [myDrawer setParentWindow: myWindow];
+	 [myDrawer setDelegate:self];
+	 [myWindow setDrawer: myDrawer];
+	 float aWidth = [[NSUserDefaults standardUserDefaults] floatForKey: @"BookmarksDrawerWidth"];
+	 if (aWidth<=0) aWidth = 150.0;
+	 [myDrawer setContentSize: NSMakeSize(aWidth, 0)];
+	 [myDrawer release];
+	 
+	 aScrollView = [[NSScrollView alloc] initWithFrame:NSMakeRect(0, 0, 20, 100)];
+	 [aScrollView setBorderType:NSBezelBorder];
+	 [aScrollView setHasHorizontalScroller: NO];
+	 [aScrollView setHasVerticalScroller: YES];
+	 [[aScrollView verticalScroller] setControlSize:NSSmallControlSize];
+	 [aScrollView setAutohidesScrollers: YES];
+	 aSize = [aScrollView contentSize];
+	 aRect = NSZeroRect;
+	 aRect.size = aSize;
+	 
+	 bookmarksView = [[NSOutlineView alloc] initWithFrame:aRect];
+	 aTableColumn = [[NSTableColumn alloc] initWithIdentifier: @"Name"];
+	 [[aTableColumn headerCell] setStringValue: NSLocalizedStringFromTableInBundle(@"Bookmarks",@"iTerm", [NSBundle bundleForClass: [self class]], @"Bookmarks")];
+	 [bookmarksView addTableColumn: aTableColumn];
+	 [aTableColumn release];
+	 [bookmarksView setOutlineTableColumn: aTableColumn];
+	 [bookmarksView setDelegate: self];
+	 [bookmarksView setTarget: self];
+	 [bookmarksView setDoubleAction: @selector(doubleClickedOnBookmarksView:)];	
+	 [bookmarksView setDataSource: [iTermBookmarkController sharedInstance]];
+	 
+	 [aScrollView setDocumentView:bookmarksView];
+	 [bookmarksView release];
+	 [myDrawer setContentView: aScrollView];
+	 [aScrollView release];
+	 */
 	
     return self;
 }
