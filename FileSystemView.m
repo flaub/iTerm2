@@ -39,7 +39,7 @@
 			else
 				dir = [[NSFileManager defaultManager] currentDirectoryPath];
 		}
-//		[self setDoubleAction: @selector(outlineViewDoubleClicked:)];
+		[self setDoubleAction: @selector(fileSystemViewSelectedNode:)];
 		[self setRootPath: dir];
     }
     

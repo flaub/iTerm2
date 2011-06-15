@@ -38,27 +38,40 @@ void OnFSEventStreamCallback(ConstFSEventStreamRef streamRef,
 
 - (int) outlineView: (NSOutlineView*) outlineView numberOfChildrenOfItem: (id) item
 {
-	return (item == nil) ? 1 : [item numberOfChildren];
+	FileSystemNode* node = (FileSystemNode*)item;
+	if (!node) {
+		return 1;
+	}
+	[node refresh];
+
+	int ret = [node numberOfChildren];
+//	NSLog(@"outlineView> numberOfChildrenOfItem: %@, ret: %d", [node relativePath], ret);
+	return ret;
 }
 
 - (BOOL) outlineView: (NSOutlineView*) outlineView isItemExpandable: (id) item
 {
-	return (item == nil) ? YES : ([item numberOfChildren] != -1);
+	FileSystemNode* node = (FileSystemNode*)item;
+	BOOL ret = [node isExpandable];
+//	NSLog(@"outlineView> isItemExpandable: %@: %d", [node relativePath], ret);
+	return ret;
 }
 
 - (id) outlineView: (NSOutlineView*) outlineView child: (int) index ofItem: (id) item
 {
 	FileSystemNode* node = (FileSystemNode*)item;
-	if (node)
-		return [node childAtIndex: index];
-	else
+//	NSLog(@"outlineView> child: %d ofItem: %@", index, [node relativePath]);
+	if (!node)
 		return _root;
+	return [node childAtIndex: index];
 }
 
 - (id) outlineView: (NSOutlineView*) outlineView objectValueForTableColumn: (NSTableColumn*) tableColumn 
 			byItem: (id) item
 {
-	return (item == nil) ? [_root fullPath] : [item relativePath];
+	FileSystemNode* node = (FileSystemNode*)item;
+//	NSLog(@"outlineView> objectValueForTableColumn: byItem: %@", [node relativePath]);
+	return (node == nil) ? [_root fullPath] : [node relativePath];
 }
 
 @end
@@ -83,7 +96,7 @@ void OnFSEventStreamCallback(ConstFSEventStreamRef streamRef,
 	FileSystemModel* this = (FileSystemModel*)clientCallBackInfo;
 	NSArray* paths = (NSArray*) eventPaths;
 
-	NSLog(@"Paths: %@", paths);
+//	NSLog(@"Paths: %@", paths);
 
 	for (int i = 0; i < numEvents; i++) {
 		[this onFSEvent: [paths objectAtIndex: i] withFlags: eventFlags[i] withEventId: eventIds[i]];
@@ -132,12 +145,12 @@ void OnFSEventStreamCallback(ConstFSEventStreamRef streamRef,
 	   withEventId: (FSEventStreamEventId) eventId
 {
 	NSString* relativePath = [path substringFromIndex: [[_root fullPath] length]];
-	FileSystemNode* item = [_root findItem: relativePath];
-	NSLog(@"Found item: %@", [item fullPath]);
-	if (item) {
-		[item refresh];
+	FileSystemNode* node = [_root findItem: relativePath];
+	if (node) {
+		NSLog(@"Found node: %@", [node fullPath]);
+		[node refresh];
 		if ([_delegate respondsToSelector: @selector(onRefreshItem:)])
-			[_delegate performSelector: @selector(onRefreshItem:) withObject: item];
+			[_delegate performSelector: @selector(onRefreshItem:) withObject: node];
 	}
 }
 
@@ -150,6 +163,7 @@ void OnFSEventStreamCallback(ConstFSEventStreamRef streamRef,
 	if ((self = [super init])) {
 		_root = self;
 		_path = [path copy];
+		_relpath = [[path lastPathComponent] copy];
 		_parent = nil;
 	}
 	return self;
@@ -160,76 +174,60 @@ void OnFSEventStreamCallback(ConstFSEventStreamRef streamRef,
 	if ((self = [super init])) {
 		_root = root;
 		_parent = parent;
-		_path = [[path lastPathComponent] copy];
+		_path = [[[parent fullPath] stringByAppendingPathComponent:path] copy];
+		_relpath = [[path lastPathComponent] copy];
 	}
 	return self;
 }
 
-- (FileSystemNode*) root
-{
-	return _root;
-}
-
-// Creates, caches, and returns the array of children
-// Loads children incrementally
-- (NSArray*) children
-{
-	if (_children == NULL)
-		[self refresh];
-    return _children;
-}
-
 - (void) refresh
 {
-	if (!_isLeaf)
+	if (_children)
 		[_children release];
+	_children = nil;
+	
+	if (![self isExpandable])
+		return;
 		
 	NSFileManager* fileManager = [NSFileManager defaultManager];
-	NSString* fullPath = [self fullPath];
-	BOOL isDir;
-	BOOL valid = [fileManager fileExistsAtPath: fullPath isDirectory: &isDir];
-	
-	if (valid && isDir)	{
-		NSError* error;
-		NSArray* array = [fileManager contentsOfDirectoryAtPath:fullPath error:&error];
-		int numChildren = [array count];
-		_children = [[NSMutableArray alloc] initWithCapacity: numChildren];
+	NSArray* array = [fileManager contentsOfDirectoryAtPath:_path error:nil];
+	int numChildren = [array count];
+	_children = [[NSMutableArray alloc] initWithCapacity: numChildren];
+	 
+	for (int i = 0; i < numChildren; i++) {
+		NSString* path = [array objectAtIndex: i];
 		
-		for (int i = 0; i < numChildren; i++) {
-			NSString* path = [array objectAtIndex: i];
-			if ([path characterAtIndex: 0] == '.')
-				continue;
-			
-			FileSystemNode* newChild = [[FileSystemNode alloc] initWithPath: path parent: self root: _root];
-			[_children addObject: newChild];
-			[newChild release];
-		}
-	}
-	else {
-		_isLeaf = YES;
+		// hide files that begin with a dot (.)
+		if ([path characterAtIndex: 0] == '.')
+			continue;
+		
+		FileSystemNode* newChild = [[FileSystemNode alloc] initWithPath: path parent: self root: _root];
+		[_children addObject: newChild];
+		[newChild release];
 	}
 }
 
-- (NSString*) relativePath { return _path; }
-
-- (NSString*) fullPath
-{
-	// If no parent, return our own relative path
-	if (_parent == nil) 
-		return _path;
-	
-	// recurse up the hierarchy, prepending each parent’s path
-	return [[_parent fullPath] stringByAppendingPathComponent: _path];
-}
+- (FileSystemNode*) root { return _root; }
+- (NSString*) fullPath { return _path; }
+- (NSString*) relativePath { return _relpath; }
 
 - (FileSystemNode*) childAtIndex:(int) index
 {
-	return [[self children] objectAtIndex: index];
+	return [_children objectAtIndex: index];
 }
 
 - (int) numberOfChildren
 {
-	return (_isLeaf) ? (-1) : [[self children] count];
+	return [_children count];
+}
+
+- (BOOL) isExpandable
+{
+//	NSLog(@"isExpandable> %@", _path);
+	NSFileManager* fileManager = [NSFileManager defaultManager];
+	BOOL isDir;
+	BOOL valid = [fileManager fileExistsAtPath: _path isDirectory: &isDir];
+	return (valid && isDir);
 }
 
 - (NSArray*) popItem: (NSArray*) array
@@ -255,9 +253,6 @@ void OnFSEventStreamCallback(ConstFSEventStreamRef streamRef,
 		if (!_children)
 			return nil;
 		
-		if (_isLeaf)
-			return self;
-		
 		for (FileSystemNode* child in _children) {
 			if ([[child relativePath] isEqualToString: part]) {
 				NSString* newPath = [NSString pathWithComponents: parts];
@@ -272,9 +267,10 @@ void OnFSEventStreamCallback(ConstFSEventStreamRef streamRef,
 
 - (void) dealloc
 {
-	if (!_isLeaf)
+	if (_children)
 		[_children release];
 	[_path release];
+	[_relpath release];
 	[super dealloc];
 }
 

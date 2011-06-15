@@ -60,7 +60,7 @@
 // This class is 1:1 with windows. It controls the tabs, bottombar, toolbar,
 // fullscreen, and coordinates resizing of sessions (either session-initiated
 // or window-initiated).
-@interface PseudoTerminal : NSWindowController <PTYTabViewDelegateProtocol, PTYWindowDelegateProtocol, WindowControllerInterface, NSWindowDelegate>
+@interface PseudoTerminal : NSWindowController <PTYTabViewDelegateProtocol, PTYWindowDelegateProtocol, WindowControllerInterface, NSWindowDelegate, NSOutlineViewDelegate>
 {
     NSPoint preferredOrigin_;
     SolidColorView* background_;

@@ -66,6 +66,7 @@
 #import "iTerm/iTermApplication.h"
 #import "BookmarksWindow.h"
 #import "FindViewController.h"
+#import "FileSystemModel.h"
 
 #define CACHED_WINDOW_POSITIONS 100
 
@@ -385,63 +386,75 @@ NSString *sessionsKey = @"sessions";
         windowType_ = WINDOW_TYPE_FULL_SCREEN;
     }
 	
-	fileSystemView = [[FileSystemView alloc] init];
-	[fileSystemView setAutoresizesOutlineColumn:YES];
+	_drawer = [[NSDrawer alloc] initWithContentSize:NSMakeSize(300, 300) preferredEdge:NSMinXEdge];
+	[_drawer setParentWindow:[self window]];
 
+	NSScrollView* scrollView = [[NSScrollView alloc] initWithFrame:NSMakeRect(0, 0, 20, 100)];
+	[scrollView setBorderType:NSBezelBorder];
+	[scrollView setHasHorizontalScroller: NO];
+	[scrollView setHasVerticalScroller: YES];
+	[[scrollView verticalScroller] setControlSize:NSSmallControlSize];
+	[scrollView setAutohidesScrollers: YES];
+
+	fileSystemView = [[FileSystemView alloc] init];
 	NSTableColumn* tableColumn = [[NSTableColumn alloc] initWithIdentifier: @"Name"];
-	[[tableColumn headerCell] setStringValue: @"Foo"];
+	[[tableColumn headerCell] setStringValue: @"File Browser"];
 	[tableColumn setResizingMask:NSTableColumnAutoresizingMask];
 	[tableColumn setWidth:300];
 	[fileSystemView addTableColumn: tableColumn];
 	[tableColumn release];
 	[fileSystemView setOutlineTableColumn: tableColumn];
+	[fileSystemView setAutoresizesOutlineColumn:YES];
+	[fileSystemView setDelegate:self];
 
-	_drawer = [[NSDrawer alloc] initWithContentSize:NSMakeSize(300, 300) preferredEdge:NSMinXEdge];
-	[_drawer setParentWindow:[self window]];
-	[_drawer setContentView:fileSystemView];
+	[scrollView setDocumentView:fileSystemView];
 	[fileSystemView release];
+	[_drawer setContentView:scrollView];
+	[scrollView release];
 
 	[_drawer openOnEdge:NSMinXEdge];
 	
-	/*
-	 myDrawer = [[NSDrawer alloc] initWithContentSize: NSMakeSize(20, 100) preferredEdge: NSMinXEdge];
-	 [myDrawer setParentWindow: myWindow];
-	 [myDrawer setDelegate:self];
-	 [myWindow setDrawer: myDrawer];
-	 float aWidth = [[NSUserDefaults standardUserDefaults] floatForKey: @"BookmarksDrawerWidth"];
-	 if (aWidth<=0) aWidth = 150.0;
-	 [myDrawer setContentSize: NSMakeSize(aWidth, 0)];
-	 [myDrawer release];
-	 
-	 aScrollView = [[NSScrollView alloc] initWithFrame:NSMakeRect(0, 0, 20, 100)];
-	 [aScrollView setBorderType:NSBezelBorder];
-	 [aScrollView setHasHorizontalScroller: NO];
-	 [aScrollView setHasVerticalScroller: YES];
-	 [[aScrollView verticalScroller] setControlSize:NSSmallControlSize];
-	 [aScrollView setAutohidesScrollers: YES];
-	 aSize = [aScrollView contentSize];
-	 aRect = NSZeroRect;
-	 aRect.size = aSize;
-	 
-	 bookmarksView = [[NSOutlineView alloc] initWithFrame:aRect];
-	 aTableColumn = [[NSTableColumn alloc] initWithIdentifier: @"Name"];
-	 [[aTableColumn headerCell] setStringValue: NSLocalizedStringFromTableInBundle(@"Bookmarks",@"iTerm", [NSBundle bundleForClass: [self class]], @"Bookmarks")];
-	 [bookmarksView addTableColumn: aTableColumn];
-	 [aTableColumn release];
-	 [bookmarksView setOutlineTableColumn: aTableColumn];
-	 [bookmarksView setDelegate: self];
-	 [bookmarksView setTarget: self];
-	 [bookmarksView setDoubleAction: @selector(doubleClickedOnBookmarksView:)];	
-	 [bookmarksView setDataSource: [iTermBookmarkController sharedInstance]];
-	 
-	 [aScrollView setDocumentView:bookmarksView];
-	 [bookmarksView release];
-	 [myDrawer setContentView: aScrollView];
-	 [aScrollView release];
-	 */
-	
     return self;
 }
+
+# pragma mark -
+# pragma mark File Browser handlers
+
+- (void) fileSystemViewSelectedNode: (id) sender
+{
+	FileSystemNode* node = [fileSystemView itemAtRow: [fileSystemView selectedRow]];
+	NSDictionary* attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:[node fullPath] error:nil];
+	NSString* fileType = [attributes fileType];
+	if (fileType == NSFileTypeRegular) {
+//		Bookmark* prototype = [[BookmarkModel sharedInstance] defaultBookmark];
+		NSMutableDictionary* aDict = [[[NSMutableDictionary alloc] init] autorelease];
+		[ITAddressBookMgr setDefaultsInBookmark:aDict];
+		[aDict setObject:[node relativePath] forKey:KEY_NAME];
+		[aDict setObject:[BookmarkModel freshGuid] forKey:KEY_GUID];
+		NSString* cmd = [NSString stringWithFormat:@"vi \"%@\"", [node fullPath]];
+		PTYSession* session = [self addNewSession:aDict withCommand:cmd asLoginSession:NO];
+		[session setName:[node relativePath]];
+//		[session setWindowTitle:[node relativePath]];
+	}
+	else {
+		if ([fileSystemView isItemExpanded: node])
+			[fileSystemView collapseItem: node];
+		else
+			[fileSystemView expandItem: node];
+	}
+}
+
+- (void) outlineView: (NSOutlineView*) outlineView 
+	 willDisplayCell: (id) cell 
+	  forTableColumn: (NSTableColumn*) tableColumn 
+				item: (id) item
+{
+//	NSImage* icon = [[NSWorkspace sharedWorkspace] iconForFile: [item fullPath]];
+//	[cell setImage: icon];
+//	NSLog(@"Cell: %@", cell);
+}
+
+#pragma mark -
 
 - (int)number
 {

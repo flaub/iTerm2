@@ -27,20 +27,22 @@
 @interface FileSystemNode : NSObject {
 @private
 	NSString* _path;
+	NSString* _relpath;
 	FileSystemNode* _root;
 	FileSystemNode* _parent;
 	NSMutableArray* _children;
-	BOOL _isLeaf;
+	BOOL _isExpanded;
 }
 
 - (id) initWithPath: (NSString*) path;
 - (FileSystemNode*) root;
-- (int) numberOfChildren; // Returns -1 for leaf nodes
+- (int) numberOfChildren;
 - (FileSystemNode*) childAtIndex: (int) index; // Invalid to call on leaf nodes
 - (NSString*) fullPath;
 - (NSString*) relativePath;
 - (FileSystemNode*) findItem: (NSString*) path;
 - (void) refresh;
+- (BOOL) isExpandable;
 
 @end
 
