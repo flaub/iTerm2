@@ -575,13 +575,13 @@ static __inline__ screen_char_t *incrementLinePointer(screen_char_t *buf_start, 
     if (x == WIDTH) {
         x = WIDTH-1;
     }
-    assert(x >= 0);
-    assert(x < WIDTH);
-    assert(y >= 0);
-    assert(y < HEIGHT);
-
-    int i = x + y * WIDTH;
-    [self setDirtyAtOffset:i value:v];
+    if (x >= 0 &&
+        x < WIDTH &&
+        y >= 0 &&
+        y < HEIGHT) {
+        int i = x + y * WIDTH;
+        [self setDirtyAtOffset:i value:v];
+    }
 }
 
 - (void)setCharAtCursorDirty:(int)value
@@ -838,6 +838,8 @@ static char* FormatCont(int c)
     if (WIDTH == 0 || HEIGHT == 0 || (new_width==WIDTH && new_height==HEIGHT)) {
         return;
     }
+    new_width = MAX(new_width, 1);
+    new_height = MAX(new_height, 1);
 
     // create a new buffer and fill it with the default line.
     new_buffer_lines = (screen_char_t*)calloc(new_height * (new_width+1),
@@ -1427,7 +1429,7 @@ static char* FormatCont(int c)
     case XTERMCC_WINDOWSIZE:
         //NSLog(@"setting window size from (%d, %d) to (%d, %d)", WIDTH, HEIGHT, token.u.csi.p[1], token.u.csi.p[2]);
         if (![[[SESSION addressBookEntry] objectForKey:KEY_DISABLE_WINDOW_RESIZING] boolValue] &&
-            ![[[SESSION tab] parentWindow] fullScreen]) {
+            ![[[SESSION tab] parentWindow] anyFullScreen]) {
             // set the column
             [[SESSION tab] sessionInitiatedResize:SESSION
                                             width:token.u.csi.p[2]
@@ -1437,7 +1439,7 @@ static char* FormatCont(int c)
         break;
     case XTERMCC_WINDOWSIZE_PIXEL:
         if (![[[SESSION addressBookEntry] objectForKey:KEY_DISABLE_WINDOW_RESIZING] boolValue] &&
-            ![[[SESSION tab] parentWindow] fullScreen]) {
+            ![[[SESSION tab] parentWindow] anyFullScreen]) {
             // TODO: Only allow this if there is a single session in the tab.
             [[SESSION tab] sessionInitiatedResize:SESSION
                                             width:(token.u.csi.p[2] / [display charWidth])
@@ -1447,14 +1449,14 @@ static char* FormatCont(int c)
     case XTERMCC_WINDOWPOS:
         //NSLog(@"setting window position to Y=%d, X=%d", token.u.csi.p[1], token.u.csi.p[2]);
         if (![[[SESSION addressBookEntry] objectForKey:KEY_DISABLE_WINDOW_RESIZING] boolValue] &&
-            ![[[SESSION tab] parentWindow] fullScreen])
+            ![[[SESSION tab] parentWindow] anyFullScreen])
             // TODO: Only allow this if there is a single session in the tab.
             [[[SESSION tab] parentWindow] windowSetFrameTopLeftPoint:NSMakePoint(token.u.csi.p[2],
                                                                                  [[[[SESSION tab] parentWindow] windowScreen] frame].size.height - token.u.csi.p[1])];
         break;
     case XTERMCC_ICONIFY:
         // TODO: Only allow this if there is a single session in the tab.
-        if (![[[SESSION tab] parentWindow] fullScreen])
+        if (![[[SESSION tab] parentWindow] anyFullScreen])
             [[[SESSION tab] parentWindow] windowPerformMiniaturize:nil];
         break;
     case XTERMCC_DEICONIFY:
@@ -1467,7 +1469,7 @@ static char* FormatCont(int c)
         break;
     case XTERMCC_LOWER:
         // TODO: Only allow this if there is a single session in the tab.
-        if (![[[SESSION tab] parentWindow] fullScreen])
+        if (![[[SESSION tab] parentWindow] anyFullScreen])
             [[[SESSION tab] parentWindow] windowOrderBack: nil];
         break;
     case XTERMCC_SU:
@@ -2374,6 +2376,7 @@ void DumpBuf(screen_char_t* p, int n) {
     [self setCursorX:cx Y:cy];
     SCROLL_TOP = st;
     SCROLL_BOTTOM = sb;
+    assert(SCROLL_BOTTOM < HEIGHT);
 }
 
 - (void)eraseInDisplay:(VT100TCC)token
@@ -2548,7 +2551,7 @@ void DumpBuf(screen_char_t* p, int n) {
     if (cursorY <= SCROLL_BOTTOM) {
         [self setCursorX:cursorX Y:y > SCROLL_BOTTOM ? SCROLL_BOTTOM : y];
     } else {
-        [self setCursorX:cursorX Y:y];
+        [self setCursorX:cursorX Y:MAX(0, MIN(HEIGHT-1, y))];
     }
 
     if (cursorX < WIDTH) {
@@ -2684,6 +2687,7 @@ void DumpBuf(screen_char_t* p, int n) {
     {
         SCROLL_TOP = top;
         SCROLL_BOTTOM = bottom;
+        assert(SCROLL_BOTTOM < HEIGHT);
 
         if ([TERMINAL originMode]) {
             [self setCursorX:0 Y:SCROLL_TOP];
@@ -3221,7 +3225,6 @@ void DumpBuf(screen_char_t* p, int n) {
                               maxTime:(float)maxTime
                               toArray:(NSMutableArray*)results
 {
-    int startY, endY;
     // Append the screen contents to the scrollback buffer so they are included in the search.
     int linesPushed;
     linesPushed = [self _appendScreenToScrollback:[self _usedHeight]];
@@ -3247,26 +3250,23 @@ void DumpBuf(screen_char_t* p, int n) {
         }
 
         // Handle the current state
-        BOOL isOk;
         switch (context->status) {
-            case Matched:
+            case Matched: {
                 // NSLog(@"matched");
                 // Found a match in the text.
-                for (ResultRange* rr in context->results) {
+                NSArray *allPositions = [linebuffer convertPositions:context->results
+                                                           withWidth:WIDTH];
+                int k = 0;
+                for (ResultRange* currentResultRange in context->results) {
                     SearchResult* result = [[SearchResult alloc] init];
-                    isOk = [linebuffer convertPosition:rr->position
-                                             withWidth:WIDTH
-                                                   toX:&result->startX
-                                                   toY:&startY];
-                    assert(isOk);
-                    result->absStartY = startY + [self totalScrollbackOverflow];
 
-                    isOk = [linebuffer convertPosition:rr->position + rr->length - 1
-                                             withWidth:WIDTH
-                                                   toX:&result->endX
-                                                   toY:&endY];
-                    assert(isOk);
-                    result->absEndY = endY + [self totalScrollbackOverflow];
+                    XYRange* xyrange = [allPositions objectAtIndex:k++];
+
+                    result->startX = xyrange->xStart;
+                    result->endX = xyrange->xEnd;
+                    result->absStartY = xyrange->yStart + [self totalScrollbackOverflow];
+                    result->absEndY = xyrange->yEnd + [self totalScrollbackOverflow];
+
                     [results addObject:result];
                     [result release];
                     if (!(context->options & FindMultipleResults)) {
@@ -3279,6 +3279,7 @@ void DumpBuf(screen_char_t* p, int n) {
                 }
                 [context->results removeAllObjects];
                 break;
+            }
 
             case Searching:
                 // NSLog(@"searching");
@@ -3549,18 +3550,8 @@ void DumpBuf(screen_char_t* p, int n) {
 // adds a line to scrollback area. Returns YES if oldest line is lost, NO otherwise
 - (int)_addLineToScrollbackImpl
 {
-    if (temp_buffer) {
-        // This is an experiment to not save to scrollback when we're in alternate
-        // screen mode. This was mentioned in a comment in bug 839 (though it's
-        // not really related).
-        if (SCROLL_BOTTOM == HEIGHT - 1 ||
-            ![[[SESSION addressBookEntry] objectForKey:KEY_SCROLLBACK_WITH_STATUS_BAR] boolValue]) {
-            // If the whole screen is being scrolled (as in less) don't save to scrollback.
-            // If only the top of the screen is being scrolled back and scrollbackWithStatusBar is disabled then don't save to scrollback.
-            return 0;
-        }
-    }
-
+    // There was an experiment to try not saving lines to scrollback when in alternate screen mode.
+    // It failed because it broke screen (see bug 1034).
     int len = WIDTH;
     if (screen_top[WIDTH].code == EOL_HARD) {
         // The line is not continued. Figure out its length by finding the last nonnull char.

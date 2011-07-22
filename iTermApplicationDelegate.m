@@ -88,6 +88,33 @@ int gDebugLogFile = -1;
     [PreferencePanel migratePreferences];
     [ITAddressBookMgr sharedInstance];
     [PreferencePanel sharedInstance];
+
+    if ([NSApp respondsToSelector:@selector(presentationOptions)]) {
+        // This crazy hackery is done so that we can use 10.6 and 10.7 features
+        // while compiling against the 10.5 SDK.
+
+        // presentationOptions =  [NSApp presentationOptions]
+        NSMethodSignature *presentationOptionsSignature = [NSApp->isa
+                                           instanceMethodSignatureForSelector:@selector(presentationOptions)];
+        NSInvocation *presentationOptionsInvocation = [NSInvocation
+                                       invocationWithMethodSignature:presentationOptionsSignature];
+        [presentationOptionsInvocation setTarget:NSApp];
+        [presentationOptionsInvocation setSelector:@selector(presentationOptions)];
+        [presentationOptionsInvocation invoke];
+
+        NSUInteger presentationOptions;
+        [presentationOptionsInvocation getReturnValue:&presentationOptions];
+
+        presentationOptions |= NSApplicationPresentationFullScreen;
+
+        // [NSAppObj setPresentationOptions:presentationOptions];
+        NSMethodSignature *setSig = [NSApp->isa instanceMethodSignatureForSelector:@selector(setPresentationOptions:)];
+        NSInvocation *setInv = [NSInvocation invocationWithMethodSignature:setSig];
+        [setInv setTarget:NSApp];
+        [setInv setSelector:@selector(setPresentationOptions:)];
+        [setInv setArgument:&presentationOptions atIndex:2];
+        [setInv invoke];
+    }
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
@@ -226,7 +253,8 @@ int gDebugLogFile = -1;
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app
 {
-    const double kMinRunningTime = 10;
+    NSNumber* pref = [[NSUserDefaults standardUserDefaults] objectForKey:@"MinRunningTime"];
+    const double kMinRunningTime =  pref ? [pref floatValue] : 10;
     if ([[NSDate date] timeIntervalSinceDate:launchTime_] < kMinRunningTime) {
         return NO;
     }
@@ -440,13 +468,13 @@ int gDebugLogFile = -1;
     DLog(@"******** Become Active");
     for (PseudoTerminal* term in [self terminals]) {
         if ([term isHotKeyWindow]) {
-            NSLog(@"Visor is open; not rescuing orphans.");
+            //NSLog(@"Visor is open; not rescuing orphans.");
             return;
         }
     }
     for (PseudoTerminal* term in [self terminals]) {
         if ([term isOrderedOut]) {
-            NSLog(@"term %p was orphaned, order front.", term);
+            //NSLog(@"term %p was orphaned, order front.", term);
             [[term window] orderFront:nil];
         }
     }

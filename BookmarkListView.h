@@ -149,8 +149,6 @@
 - (void)onDoubleClick:(id)sender;
 - (void)eraseQuery;
 - (void)resizeSubviewsWithOldSize:(NSSize)oldBoundsSize;
-- (id)retain;
-- (oneway void)release;
 - (void)turnOnDebug;
 - (NSTableView*)tableView;
 - (id)delegate;
